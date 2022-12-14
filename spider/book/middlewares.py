@@ -41,8 +41,7 @@ class ProxypoolMiddleware(object):
         try:
             response = requests.get(self.proxypool_url, timeout=5)
             if response.status_code == 200:
-                proxy = response.text
-                return proxy
+                return response.text
         except requests.ConnectionError:
             return False
     

@@ -40,10 +40,10 @@ class DoubanSpider(Spider):
         book_introduction = ''.join(response.xpath(
             '//h2[contains(., "内容简介")]/following-sibling::div[@class="indent"]//span[contains(@class, "hidden")]//div[@class="intro"]//p//text()').extract())
         book_authors = \
-            response.xpath(
+                response.xpath(
                 '//span[contains(text(), "作者") and @class="pl"]/following-sibling::a//text()').extract()
         book_translators = \
-            response.xpath(
+                response.xpath(
                 '//span[contains(text(), "译者") and @class="pl"]/following-sibling::a//text()').extract()
         book_publisher = response.xpath(
             '//span[contains(text(), "出版社") and @class="pl"]/following-sibling::text()').extract_first()
@@ -60,7 +60,7 @@ class DoubanSpider(Spider):
         book_price = response.xpath(
             '//span[contains(text(), "定价") and @class="pl"]/following-sibling::text()').extract_first()
         book_price = book_price.strip() if book_price else None
-        book_id = re.search('subject/(\d+)', response.url).group(1)
+        book_id = re.search('subject/(\d+)', response.url)[1]
         book_url = response.url
         book_score = response.css('.rating_num::text').extract_first()
         book_score = book_score.strip() if book_score else None
@@ -69,31 +69,28 @@ class DoubanSpider(Spider):
         book_catalog = book_catalog.replace(' (收起)\n', '') if book_catalog else None
         book_tags = response.xpath(
             '//div[contains(@id, "tags-section")]//div[@class="indent"]//span//a//text()').extract()
-        book_item = BookItem({
-            'id': book_id,
-            'name': book_name,
-            'publisher': book_publisher,
-            'page_number': book_page_number,
-            'isbn': book_isbn,
-            'published_at': book_published_at,
-            'price': book_price,
-            'url': book_url,
-            'authors': book_authors,
-            'translators': book_translators,
-            'score': book_score,
-            'catalog': book_catalog,
-            'cover': book_cover,
-            'introduction': book_introduction,
-            'tags': book_tags
-        })
-        yield book_item
-        
+        yield BookItem(
+            {
+                'id': book_id,
+                'name': book_name,
+                'publisher': book_publisher,
+                'page_number': book_page_number,
+                'isbn': book_isbn,
+                'published_at': book_published_at,
+                'price': book_price,
+                'url': book_url,
+                'authors': book_authors,
+                'translators': book_translators,
+                'score': book_score,
+                'catalog': book_catalog,
+                'cover': book_cover,
+                'introduction': book_introduction,
+                'tags': book_tags,
+            }
+        )
         for comment_dom in response.css('.comment-item'):
             comment_id = comment_dom.xpath('./@data-cid').extract_first()
             comment_content = comment_dom.xpath('.//span[@class="short"]/text()').extract_first()
-            comment_item = CommentItem({
-                'id': comment_id,
-                'content': comment_content,
-                'book_id': book_id
-            })
-            yield comment_item
+            yield CommentItem(
+                {'id': comment_id, 'content': comment_content, 'book_id': book_id}
+            )
